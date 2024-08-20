@@ -84,9 +84,9 @@ class MTeamTorrentUserInfo(_ISiteUserInfo):
                 sysrole._classUp = int(result.get("classUp"))
                 sysrole._registerWeek = int(result.get("registerWeek"))
                 sysrole._downloaded = int(result.get("downloaded"))
-                sysrole._shareRate = int(result.get("shareRate"))
-                sysrole._shareRateLimit = int(result.get("shareRateLimit"))
-                sysrole._sortPoint = int(result.get("sortPoint"))
+                sysrole._shareRate = float(result.get("shareRate"))
+                sysrole._shareRateLimit = float(result.get("shareRateLimit"))
+                sysrole._sortPoint = float(result.get("sortPoint"))
                 g_sys_role_list.append(sysrole)
             log.info(f"【MTeamUserInfo】 获取馒头系统角色成功，共有{len(g_sys_role_list)}个角色")
         elif res is not None:
@@ -105,7 +105,7 @@ class MTeamTorrentUserInfo(_ISiteUserInfo):
         res = RequestUtils(
             headers={
                 'x-api-key': self._apikey,
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
                 "User-Agent": self._ua,
                 "Accept": "application/json"
             },
