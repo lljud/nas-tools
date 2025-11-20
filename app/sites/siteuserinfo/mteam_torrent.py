@@ -59,7 +59,7 @@ class MTeamTorrentUserInfo(_ISiteUserInfo):
         res = RequestUtils(
             headers={
                 'x-api-key': self._apikey,
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
                 "User-Agent": self._ua,
                 "Accept": "application/json"
             },
