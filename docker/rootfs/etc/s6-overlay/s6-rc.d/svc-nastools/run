@@ -3,10 +3,19 @@
 
 umask ${UMASK}
 
+DEFAULT_NT_PORT=3000
+NT_PORT="${DEFAULT_NT_PORT}"
+
 if [ -f ${NASTOOL_CONFIG} ]; then
-    NT_PORT=$(yq '.app.web_port' /config/config.yaml)
-else
-    NT_PORT=3000
+    if command -v yq >/dev/null 2>&1; then
+        NT_PORT=$(yq -r '.app.web_port // empty' "${NASTOOL_CONFIG}" 2>/dev/null || true)
+    else
+        NT_PORT=$(grep -E '^[[:space:]]*web_port:[[:space:]]*[0-9]+' "${NASTOOL_CONFIG}" | head -n 1 | sed -E 's/.*web_port:[[:space:]]*([0-9]+).*/\1/' || true)
+    fi
+fi
+
+if ! [[ "${NT_PORT}" =~ ^[0-9]+$ ]]; then
+    NT_PORT="${DEFAULT_NT_PORT}"
 fi
 
 exec \

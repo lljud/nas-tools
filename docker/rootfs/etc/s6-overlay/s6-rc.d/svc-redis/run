@@ -1,6 +1,8 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+NT_LOG=""
+
 function __debug {
 
 exec \
@@ -18,7 +20,11 @@ exec \
 }
 
 if [ -f ${NASTOOL_CONFIG} ]; then
-    NT_LOG=$(yq '.app.loglevel' /config/config.yaml)
+    if command -v yq >/dev/null 2>&1; then
+        NT_LOG=$(yq -r '.app.loglevel // empty' "${NASTOOL_CONFIG}" 2>/dev/null || true)
+    else
+        NT_LOG=$(grep -E '^[[:space:]]*loglevel:[[:space:]]*[A-Za-z]+' "${NASTOOL_CONFIG}" | head -n 1 | sed -E 's/.*loglevel:[[:space:]]*([A-Za-z]+).*/\1/' || true)
+    fi
     if [[ "${NT_LOG}" == "debug" ]]; then
         __debug
     else
