@@ -32,7 +32,8 @@ RUN set -xe && \
     # Pip requirements
     pip install --upgrade pip setuptools wheel && \
     pip install cython && \
-    pip install -r /tmp/requirements.txt && \
+    pip install --only-binary=:all: fast-bencode==1.1.8 && \
+    pip install --prefer-binary -r /tmp/requirements.txt && \
     # Clear
     apt-get purge -y --auto-remove build-essential unzip && \
     apt-get clean -y && \
