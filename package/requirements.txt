@@ -92,7 +92,7 @@ requests==2.28.1
 ruamel.yaml==0.17.21
 ruamel.yaml.clib==0.2.7
 selenium==4.11.2
-setuptools
+setuptools<81
 six==1.16.0
 slack-bolt==1.16.1
 slack-sdk==3.19.5

@@ -18,6 +18,17 @@ if ! [[ "${NT_PORT}" =~ ^[0-9]+$ ]]; then
     NT_PORT="${DEFAULT_NT_PORT}"
 fi
 
+# Compatibility guard for dependencies (for example, proces -> pkg_resources).
+if ! python3 -c "import pkg_resources" >/dev/null 2>&1; then
+    echo "[WARN] pkg_resources is missing, installing setuptools<81 ..."
+    python3 -m pip install --no-cache-dir "setuptools<81" >/tmp/nastools-setuptools-install.log 2>&1 || true
+fi
+
+if ! python3 -c "import pkg_resources" >/dev/null 2>&1; then
+    echo "[ERROR] pkg_resources is still missing after setuptools install. See /tmp/nastools-setuptools-install.log"
+    exit 1
+fi
+
 exec \
     s6-notifyoncheck -d -n 300 -w 1000 -c "nc -z localhost ${NT_PORT}" \
     cd ${WORKDIR} s6-setuidgid nt python3 run.py

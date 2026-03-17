@@ -30,7 +30,7 @@ RUN set -xe && \
     curl -fsSL https://dl.min.io/client/mc/release/linux-${ARCH}/mc --create-dirs -o /usr/bin/mc && \
     chmod +x /usr/bin/mc && \
     # Pip requirements
-    pip install --upgrade pip setuptools wheel && \
+    pip install --upgrade pip "setuptools<81" wheel && \
     pip install cython && \
     pip install --only-binary=:all: fast-bencode==1.1.8 && \
     pip install --prefer-binary -r /tmp/requirements.txt && \

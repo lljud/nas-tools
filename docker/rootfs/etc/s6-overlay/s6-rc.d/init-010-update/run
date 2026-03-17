@@ -11,6 +11,10 @@ function WARN() {
     echo -e "[\033[33mWARN\033[0m] ${1}"
 }
 
+function is_debian {
+    grep -Eqi "Debian" /etc/issue || grep -Eq "Debian" /etc/os-release
+}
+
 # 更换国内软件源
 function package_cn {
 
@@ -41,7 +45,7 @@ function package_cn_debian {
 # 软件包更新
 function package_update {
 
-    if grep -Eqi "Debian" /etc/issue || grep -Eq "Debian" /etc/os-release; then
+    if is_debian; then
         if [ "${NASTOOL_CN_UPDATE}" = "true" ]; then
             package_list_debian_url=https://ghproxy.com/https://raw.githubusercontent.com/hsuyelin/nas-tools/master/package_list_debian.txt
         else
@@ -60,18 +64,19 @@ function package_update {
         hash_new=$(sha256sum /tmp/package_list_debian.txt)
         if [ "${hash_old}" != "${hash_new}" ]; then
             DEBIAN_FRONTEND="noninteractive"
-            INFO "检测到package_list.txt有变化，更新软件包..."
+            INFO "检测到package_list_debian.txt有变化，更新软件包..."
             if [ "${NASTOOL_CN_UPDATE}" = "true" ]; then
                 package_cn_debian
             else
                 apt-get update -y
             fi
-            apt-get install -y $(echo $(cat /tmp/package_list_debian.txt))
+            sed 's/^netcat$/netcat-openbsd/' /tmp/package_list_debian.txt > /tmp/package_list_debian.resolved.txt
+            xargs -r apt-get install -y --no-install-recommends < /tmp/package_list_debian.resolved.txt
             if [ $? -ne 0 ]; then
                 ERROR "无法更新软件包，请更新镜像！"
             else
                 INFO "软件包安装成功"
-                sha256sum /tmp/package_list_debian.txt > /tmp/package_list.txt.sha256sum
+                sha256sum /tmp/package_list_debian.txt > /tmp/package_list_debian.txt.sha256sum
             fi
         fi
     else
@@ -101,15 +106,33 @@ function requirements_update {
     hash_new=$(sha256sum requirements.txt)
     if [ "${hash_old}" != "${hash_new}" ]; then
         INFO "检测到requirements.txt有变化，重新安装依赖..."
-        if [ "${NASTOOL_CN_UPDATE}" = "true" ]; then
-            package_cn
-            apk add --no-cache libffi-dev gcc musl-dev libxml2-dev libxslt-dev
-            pip install --upgrade pip setuptools wheel -i "${PYPI_MIRROR}"
-            pip install -r requirements.txt -i "${PYPI_MIRROR}"
+        if is_debian; then
+            DEBIAN_FRONTEND="noninteractive"
+            if [ "${NASTOOL_CN_UPDATE}" = "true" ]; then
+                package_cn_debian
+            else
+                apt-get update -y
+            fi
+            apt-get install -y --no-install-recommends build-essential
+            if [ "${NASTOOL_CN_UPDATE}" = "true" ]; then
+                pip install --upgrade pip "setuptools<81" wheel -i "${PYPI_MIRROR}"
+                pip install --prefer-binary -r requirements.txt -i "${PYPI_MIRROR}"
+            else
+                pip install --upgrade pip "setuptools<81" wheel
+                pip install --prefer-binary -r requirements.txt
+            fi
+            apt-get purge -y --auto-remove build-essential
         else
-            apk add --no-cache libffi-dev gcc musl-dev libxml2-dev libxslt-dev
-            pip install --upgrade pip setuptools wheel
-            pip install -r requirements.txt
+            if [ "${NASTOOL_CN_UPDATE}" = "true" ]; then
+                package_cn
+                apk add --no-cache libffi-dev gcc musl-dev libxml2-dev libxslt-dev
+                pip install --upgrade pip "setuptools<81" wheel -i "${PYPI_MIRROR}"
+                pip install --prefer-binary -r requirements.txt -i "${PYPI_MIRROR}"
+            else
+                apk add --no-cache libffi-dev gcc musl-dev libxml2-dev libxslt-dev
+                pip install --upgrade pip "setuptools<81" wheel
+                pip install --prefer-binary -r requirements.txt
+            fi
         fi
         if [ $? -ne 0 ]; then
             ERROR "无法安装依赖，请更新镜像！"
@@ -151,8 +174,18 @@ if [ "${NASTOOL_AUTO_UPDATE}" = "true" ]; then
     if [ ! -s /tmp/third_party.txt.sha256sum ]; then
         sha256sum third_party.txt > /tmp/third_party.txt.sha256sum
     fi
-    if [ ! -s /tmp/package_list.txt.sha256sum ]; then
-        sha256sum package_list.txt > /tmp/package_list.txt.sha256sum
+    if is_debian; then
+        if [ ! -s /tmp/package_list_debian.txt.sha256sum ]; then
+            if [ -s /tmp/package_list_debian.txt ]; then
+                sha256sum /tmp/package_list_debian.txt > /tmp/package_list_debian.txt.sha256sum
+            elif [ -s package_list_debian.txt ]; then
+                sha256sum package_list_debian.txt > /tmp/package_list_debian.txt.sha256sum
+            fi
+        fi
+    else
+        if [ ! -s /tmp/package_list.txt.sha256sum ]; then
+            sha256sum package_list.txt > /tmp/package_list.txt.sha256sum
+        fi
     fi
     INFO "更新主程序..."
     git remote set-url origin "${REPO_URL}" &> /dev/null

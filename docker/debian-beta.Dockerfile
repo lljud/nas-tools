@@ -4,7 +4,9 @@ RUN set -xe && \
     export DEBIAN_FRONTEND="noninteractive" && \
     apt-get update -y && \
     apt-get install -y wget bash && \
-    apt-get install -y $(echo $(wget --no-check-certificate -qO- https://raw.githubusercontent.com/lljud/nas-tools/beta/package_list_debian.txt)) && \
+    wget --no-check-certificate -qO /tmp/package_list_debian.txt https://raw.githubusercontent.com/lljud/nas-tools/beta/package_list_debian.txt && \
+    sed 's/^netcat$/netcat-openbsd/' /tmp/package_list_debian.txt > /tmp/package_list_debian.resolved.txt && \
+    xargs -r apt-get install -y --no-install-recommends < /tmp/package_list_debian.resolved.txt && \
     ln -sf /command/with-contenv /usr/bin/with-contenv && \
     # zone time
     ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
@@ -27,7 +29,7 @@ RUN set -xe && \
     # Pip requirements prepare
     apt-get install -y build-essential && \
     # Pip requirements
-    pip install --upgrade pip setuptools wheel && \
+    pip install --upgrade pip "setuptools<81" wheel && \
     pip install cython && \
     pip install -r https://raw.githubusercontent.com/lljud/nas-tools/beta/requirements.txt && \
     # Clear
