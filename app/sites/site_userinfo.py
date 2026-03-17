@@ -384,11 +384,11 @@ class SiteUserInfo(object):
 
         return self.__todict(raw_statistics)
 
-    def get_pt_site_activity_history(self, site, days=365 * 2):
+    def get_pt_site_activity_history(self, site, days=None):
         """
         查询站点 上传，下载，做种数据
         :param site: 站点名称
-        :param days: 最大数据量
+        :param days: 最大数据量，默认不限
         :return:
         """
         site_activities = [["time", "upload", "download", "bonus", "seeding", "seeding_size"]]

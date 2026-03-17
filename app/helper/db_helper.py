@@ -1407,14 +1407,17 @@ class DbHelper:
                     }
                 )
 
-    def get_site_statistics_history(self, site, days=30):
+    def get_site_statistics_history(self, site, days=None):
         """
         查询站点数据历史
         """
-        return self._db.query(SITESTATISTICSHISTORY).filter(
+        query = self._db.query(SITESTATISTICSHISTORY).filter(
             SITESTATISTICSHISTORY.SITE == site).order_by(
             SITESTATISTICSHISTORY.DATE.asc()
-        ).limit(days)
+        )
+        if isinstance(days, int) and days > 0:
+            query = query.limit(days)
+        return query
 
     def get_site_seeding_info(self, site):
         """
