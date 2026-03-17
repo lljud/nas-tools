@@ -48,7 +48,6 @@ jobs:
             ${{ env.DOCKERHUB_USERNAME }}/nas-tools
           tags: |
             type=raw,value=${{ env.app_version }}
-            type=raw,value=latest
 
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
@@ -102,6 +101,7 @@ jobs:
           tags: |
             type=raw,value=${{ env.app_version }}
             type=raw,value=debian
+            type=raw,value=latest
 
       - name: Set Up QEMU
         uses: docker/setup-qemu-action@v3
