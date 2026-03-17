@@ -22,20 +22,19 @@ RUN set -xe && \
     update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 3 && \
     update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 3
 RUN set -xe && \
+    apt-get install -y --no-install-recommends build-essential unzip && \
     # Rclone
     curl https://rclone.org/install.sh | bash && \
     # Minio
     if [ "$(uname -m)" = "x86_64" ]; then ARCH=amd64; elif [ "$(uname -m)" = "aarch64" ]; then ARCH=arm64; else ARCH=amd64; fi && \
     curl -fsSL https://dl.min.io/client/mc/release/linux-${ARCH}/mc --create-dirs -o /usr/bin/mc && \
     chmod +x /usr/bin/mc && \
-    # Pip requirements prepare
-    apt-get install -y --no-install-recommends build-essential && \
     # Pip requirements
     pip install --upgrade pip setuptools wheel && \
     pip install cython && \
     pip install -r /tmp/requirements.txt && \
     # Clear
-    apt-get purge -y --auto-remove build-essential && \
+    apt-get purge -y --auto-remove build-essential unzip && \
     apt-get clean -y && \
     rm -rf \
         /tmp/* \
