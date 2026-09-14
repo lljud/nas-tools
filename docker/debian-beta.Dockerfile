@@ -1,9 +1,10 @@
-FROM python:3.10.11-slim-bullseye
+FROM python:3.10-slim-bookworm
 COPY --from=shinsenter/s6-overlay / /
+ARG TZ=Asia/Shanghai
 RUN set -xe && \
     export DEBIAN_FRONTEND="noninteractive" && \
-    apt-get update -y && \
-    apt-get install -y wget bash && \
+    apt-get -o Acquire::Retries=3 update -y && \
+    apt-get install -y --no-install-recommends wget bash ca-certificates && \
     wget --no-check-certificate -qO /tmp/package_list_debian.txt https://raw.githubusercontent.com/lljud/nas-tools/beta/package_list_debian.txt && \
     sed 's/^netcat$/netcat-openbsd/' /tmp/package_list_debian.txt > /tmp/package_list_debian.resolved.txt && \
     xargs -r apt-get install -y --no-install-recommends < /tmp/package_list_debian.resolved.txt && \
@@ -17,9 +18,7 @@ RUN set -xe && \
     ln -sf /usr/bin/chromedriver /usr/lib/chromium/chromedriver && \
     # Python settings
     update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 3 && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3.9 2 && \
     update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 3 && \
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.9 2 && \
     # Rclone
     curl https://rclone.org/install.sh | bash && \
     # Minio
@@ -27,14 +26,13 @@ RUN set -xe && \
     curl https://dl.min.io/client/mc/release/linux-${ARCH}/mc --create-dirs -o /usr/bin/mc && \
     chmod +x /usr/bin/mc && \
     # Pip requirements prepare
-    apt-get install -y build-essential && \
+    apt-get install -y --no-install-recommends build-essential && \
     # Pip requirements
     pip install --upgrade pip "setuptools<81" wheel && \
     pip install cython && \
     pip install -r https://raw.githubusercontent.com/lljud/nas-tools/beta/requirements.txt && \
     # Clear
-    apt-get remove -y build-essential && \
-    apt-get autoremove -y && \
+    apt-get purge -y --auto-remove build-essential && \
     apt-get clean -y && \
     rm -rf \
         /tmp/* \

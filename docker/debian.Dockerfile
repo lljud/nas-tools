@@ -1,11 +1,11 @@
-FROM python:3.10.11-slim-bullseye
+FROM python:3.10-slim-bookworm
 COPY --from=shinsenter/s6-overlay / /
 COPY package_list_debian.txt /tmp/package_list_debian.txt
 COPY requirements.txt /tmp/requirements.txt
 ARG TZ=Asia/Shanghai
 RUN set -xe && \
     export DEBIAN_FRONTEND="noninteractive" && \
-    apt-get update -y && \
+    apt-get -o Acquire::Retries=3 update -y && \
     apt-get install -y --no-install-recommends wget bash ca-certificates && \
     # Debian can expose `netcat` as a virtual package, so resolve to a concrete provider.
     sed 's/^netcat$/netcat-openbsd/' /tmp/package_list_debian.txt > /tmp/package_list_debian.resolved.txt && \
@@ -22,6 +22,7 @@ RUN set -xe && \
     update-alternatives --install /usr/bin/python python /usr/local/bin/python3.10 3 && \
     update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.10 3
 RUN set -xe && \
+    apt-get -o Acquire::Retries=3 update -y && \
     apt-get install -y --no-install-recommends build-essential unzip && \
     # Rclone
     curl https://rclone.org/install.sh | bash && \

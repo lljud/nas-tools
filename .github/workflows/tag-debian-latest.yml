@@ -3,14 +3,6 @@ name: Tag Debian As Latest
 on:
   workflow_dispatch:
     inputs:
-      docker_username:
-        description: DockerHub username
-        required: true
-        default: ""
-      docker_token:
-        description: DockerHub access token
-        required: true
-        default: ""
       image_name:
         description: Docker image name (without username)
         required: false
@@ -30,19 +22,22 @@ jobs:
     name: Retag DockerHub Image
     permissions:
       contents: read
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - name: Set Up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Login DockerHub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
-          username: ${{ github.event.inputs.docker_username }}
-          password: ${{ github.event.inputs.docker_token }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Retag Manifest
         env:
-          IMAGE: ${{ github.event.inputs.docker_username }}/${{ github.event.inputs.image_name }}
+          IMAGE: ${{ env.DOCKERHUB_USERNAME }}/${{ github.event.inputs.image_name }}
           SOURCE_TAG: ${{ github.event.inputs.source_tag }}
           TARGET_TAG: ${{ github.event.inputs.target_tag }}
         run: |
@@ -53,7 +48,7 @@ jobs:
 
       - name: Verify Target Tag
         env:
-          IMAGE: ${{ github.event.inputs.docker_username }}/${{ github.event.inputs.image_name }}
+          IMAGE: ${{ env.DOCKERHUB_USERNAME }}/${{ github.event.inputs.image_name }}
           TARGET_TAG: ${{ github.event.inputs.target_tag }}
         run: |
           set -euo pipefail
