@@ -19,6 +19,8 @@ class Jellyfin(_IMediaClient):
     # 私有属性
     _client_config = {}
     _serverid = None
+    # Jellyfin 12 disables the legacy lowercase `api_key` query parameter.
+    # The configured field remains `api_key`, but requests must use `ApiKey`.
     _apikey = None
     _host = None
     _play_host = None
@@ -71,7 +73,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return []
-        req_url = f"{self._host}Users/{self._user}/Views?api_key={self._apikey}"
+        req_url = f"{self._host}Users/{self._user}/Views?ApiKey={self._apikey}"
         try:
             res = RequestUtils().get_res(req_url)
             if res:
@@ -90,7 +92,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return 0
-        req_url = "%sUsers?api_key=%s" % (self._host, self._apikey)
+        req_url = "%sUsers?ApiKey=%s" % (self._host, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
             if res:
@@ -109,7 +111,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return None
-        req_url = "%sUsers?api_key=%s" % (self._host, self._apikey)
+        req_url = "%sUsers?ApiKey=%s" % (self._host, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
             if res:
@@ -136,7 +138,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return None
-        req_url = "%sSystem/Info?api_key=%s" % (self._host, self._apikey)
+        req_url = "%sSystem/Info?ApiKey=%s" % (self._host, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
             if res:
@@ -154,7 +156,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return []
-        req_url = "%sSystem/ActivityLog/Entries?api_key=%s&Limit=%s" % (self._host, self._apikey, num)
+        req_url = "%sSystem/ActivityLog/Entries?ApiKey=%s&Limit=%s" % (self._host, self._apikey, num)
         ret_array = []
         try:
             res = RequestUtils().get_res(req_url)
@@ -191,7 +193,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return None
-        req_url = "%sItems/Counts?api_key=%s" % (self._host, self._apikey)
+        req_url = "%sItems/Counts?ApiKey=%s" % (self._host, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
             if res:
@@ -210,7 +212,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey or not self._user:
             return None
-        req_url = "%sUsers/%s/Items?api_key=%s&searchTerm=%s&IncludeItemTypes=Series&Limit=10&Recursive=true" % (
+        req_url = "%sUsers/%s/Items?ApiKey=%s&searchTerm=%s&IncludeItemTypes=Series&Limit=10&Recursive=true" % (
             self._host, self._user, self._apikey, name)
         try:
             res = RequestUtils().get_res(req_url)
@@ -236,7 +238,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey or not self._user:
             return None
-        req_url = "%sUsers/%s/Items?api_key=%s&searchTerm=%s&IncludeItemTypes=Movie&Limit=10&Recursive=true" % (
+        req_url = "%sUsers/%s/Items?ApiKey=%s&searchTerm=%s&IncludeItemTypes=Movie&Limit=10&Recursive=true" % (
             self._host, self._user, self._apikey, title)
         try:
             res = RequestUtils().get_res(req_url)
@@ -287,7 +289,7 @@ class Jellyfin(_IMediaClient):
                     return []
         if not season:
             season = ""
-        req_url = "%sShows/%s/Episodes?season=%s&&userId=%s&isMissing=false&api_key=%s" % (
+        req_url = "%sShows/%s/Episodes?season=%s&&userId=%s&isMissing=false&ApiKey=%s" % (
             self._host, item_id, season, self._user, self._apikey)
         try:
             res_json = RequestUtils().get_res(req_url)
@@ -340,7 +342,7 @@ class Jellyfin(_IMediaClient):
         if not self._host or not self._apikey or not self._user:
             return None
         # 查询所有剧集
-        req_url = "%sShows/%s/Episodes?season=%s&&userId=%s&isMissing=false&api_key=%s" % (
+        req_url = "%sShows/%s/Episodes?season=%s&&userId=%s&isMissing=false&ApiKey=%s" % (
             self._host, item_id, season_id, self._user, self._apikey)
         try:
             res_json = RequestUtils().get_res(req_url)
@@ -371,7 +373,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return None
-        req_url = "%sItems/%s/RemoteImages?api_key=%s" % (self._host, item_id, self._apikey)
+        req_url = "%sItems/%s/RemoteImages?ApiKey=%s" % (self._host, item_id, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
             if res:
@@ -415,7 +417,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return False
-        req_url = "%sLibrary/Refresh?api_key=%s" % (self._host, self._apikey)
+        req_url = "%sLibrary/Refresh?ApiKey=%s" % (self._host, self._apikey)
         try:
             res = RequestUtils().post_res(req_url)
             if res:
@@ -484,14 +486,14 @@ class Jellyfin(_IMediaClient):
             return ""
         if not remote:
             image_url = f"{self._host}Items/{item_id}/" \
-                        f"Images/Backdrop?tag={image_tag}&fillWidth=666&api_key={self._apikey}"
+                        f"Images/Backdrop?tag={image_tag}&fillWidth=666&ApiKey={self._apikey}"
             if inner:
                 return self.get_nt_image_url(image_url)
             return image_url
         else:
             host = self._play_host or self._host
             image_url = f"{host}Items/{item_id}/" \
-                        f"Images/Backdrop?tag={image_tag}&fillWidth=666&api_key={self._apikey}"
+                        f"Images/Backdrop?tag={image_tag}&fillWidth=666&ApiKey={self._apikey}"
             if IpUtils.is_internal(host):
                 return self.get_nt_image_url(url=image_url, remote=True)
             return image_url
@@ -504,7 +506,7 @@ class Jellyfin(_IMediaClient):
             return {}
         if not self._host or not self._apikey:
             return {}
-        req_url = "%sUsers/%s/Items/%s?api_key=%s" % (
+        req_url = "%sUsers/%s/Items/%s?ApiKey=%s" % (
             self._host, self._user, itemid, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
@@ -522,7 +524,7 @@ class Jellyfin(_IMediaClient):
             yield {}
         if not self._host or not self._apikey:
             yield {}
-        req_url = "%sUsers/%s/Items?parentId=%s&api_key=%s" % (self._host, self._user, parent, self._apikey)
+        req_url = "%sUsers/%s/Items?parentId=%s&ApiKey=%s" % (self._host, self._user, parent, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
             if res and res.status_code == 200:
@@ -564,7 +566,7 @@ class Jellyfin(_IMediaClient):
         if not self._host or not self._apikey:
             return []
         playing_sessions = []
-        req_url = "%sSessions?api_key=%s" % (self._host, self._apikey)
+        req_url = "%sSessions?ApiKey=%s" % (self._host, self._apikey)
         try:
             res = RequestUtils().get_res(req_url)
             if res and res.status_code == 200:
@@ -594,7 +596,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return None
-        req_url = f"{self._host}Users/{self._user}/Items/Resume?Limit={num}&MediaTypes=Video&api_key={self._apikey}"
+        req_url = f"{self._host}Users/{self._user}/Items/Resume?Limit={num}&MediaTypes=Video&ApiKey={self._apikey}"
         try:
             res = RequestUtils().get_res(req_url)
             if res:
@@ -641,7 +643,7 @@ class Jellyfin(_IMediaClient):
         """
         if not self._host or not self._apikey:
             return None
-        req_url = f"{self._host}Users/{self._user}/Items/Latest?Limit={num}&MediaTypes=Video&api_key={self._apikey}"
+        req_url = f"{self._host}Users/{self._user}/Items/Latest?Limit={num}&MediaTypes=Video&ApiKey={self._apikey}"
         try:
             res = RequestUtils().get_res(req_url)
             if res:
