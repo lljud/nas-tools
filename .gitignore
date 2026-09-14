@@ -15,3 +15,8 @@ nastools_test.py
 /node_modules/**
 package-lock.json
 package.json
+
+icecreamconfig/
+mteam_test/
+db/user.db
+tests/test_jellyfin.py
