@@ -1,4 +1,5 @@
 FROM python:3.10.11-alpine
+ARG MC_VERSION=RELEASE.2025-08-13T08-35-41Z
 RUN apk add --no-cache --virtual .build-deps \
         libffi-dev \
         gcc \
@@ -8,7 +9,7 @@ RUN apk add --no-cache --virtual .build-deps \
     && apk add --no-cache $(echo $(wget --no-check-certificate -qO- https://raw.githubusercontent.com/lljud/nas-tools/beta/package_list.txt)) \
     && curl https://rclone.org/install.sh | bash \
     && if [ "$(uname -m)" = "x86_64" ]; then ARCH=amd64; elif [ "$(uname -m)" = "aarch64" ]; then ARCH=arm64; fi \
-    && curl https://dl.min.io/client/mc/release/linux-${ARCH}/mc --create-dirs -o /usr/bin/mc \
+    && curl -fsSL --retry 3 "https://github.com/minio/mc/releases/download/${MC_VERSION}/mc.linux-${ARCH}.${MC_VERSION}" -o /usr/bin/mc \
     && chmod +x /usr/bin/mc \
     && pip install --upgrade pip "setuptools<81" wheel \
     && pip install cython \

@@ -1,6 +1,7 @@
 FROM python:3.10-slim-bookworm
 COPY --from=shinsenter/s6-overlay / /
 ARG TZ=Asia/Shanghai
+ARG MC_VERSION=RELEASE.2025-08-13T08-35-41Z
 RUN set -xe && \
     export DEBIAN_FRONTEND="noninteractive" && \
     apt-get -o Acquire::Retries=3 update -y && \
@@ -23,7 +24,7 @@ RUN set -xe && \
     curl https://rclone.org/install.sh | bash && \
     # Minio
     if [ "$(uname -m)" = "x86_64" ]; then ARCH=amd64; elif [ "$(uname -m)" = "aarch64" ]; then ARCH=arm64; fi && \
-    curl https://dl.min.io/client/mc/release/linux-${ARCH}/mc --create-dirs -o /usr/bin/mc && \
+    curl -fsSL --retry 3 "https://github.com/minio/mc/releases/download/${MC_VERSION}/mc.linux-${ARCH}.${MC_VERSION}" -o /usr/bin/mc && \
     chmod +x /usr/bin/mc && \
     # Pip requirements prepare
     apt-get install -y --no-install-recommends build-essential && \
