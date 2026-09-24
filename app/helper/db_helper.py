@@ -1488,19 +1488,16 @@ class DbHelper:
                     SITESTATISTICSHISTORY.DATE >= min_date,
                     SITESTATISTICSHISTORY.DATE <= max_date
                 ).group_by(SITESTATISTICSHISTORY.SITE, SITESTATISTICSHISTORY.DATE).subquery()
+            # 双零快照可能来自采集失败，不参与基线计算；仅一项为零仍是有效数据。
+            valid_snapshot = (subquery.c.UPLOAD != 0) | (subquery.c.DOWNLOAD != 0)
             # 查询大于开始时间范围里的单日,单站点 最大值与最小值
             rets = self._db.query(subquery.c.SITE,
-                                  func.min(subquery.c.UPLOAD),
-                                  func.min(subquery.c.DOWNLOAD),
+                                  func.coalesce(func.min(case((valid_snapshot, subquery.c.UPLOAD))), 0),
+                                  func.coalesce(func.min(case((valid_snapshot, subquery.c.DOWNLOAD))), 0),
                                   func.max(subquery.c.UPLOAD),
                                   func.max(subquery.c.DOWNLOAD)).group_by(subquery.c.SITE).all()
             ret_sites = []
             for ret_b in rets:
-                # 如果最小值都是0，可能时由于近几日没有更新数据，或者cookie过期，正常有数据的话，第二天能正常
-                ret_b = list(ret_b)
-                if ret_b[1] == 0 and ret_b[2] == 0:
-                    ret_b[1] = ret_b[3]
-                    ret_b[2] = ret_b[4]
                 ret_sites.append(ret_b[0])
                 if int(ret_b[1]) < int(ret_b[3]):
                     total_upload += int(ret_b[3]) - int(ret_b[1])
