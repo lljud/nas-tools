@@ -19,4 +19,3 @@ package.json
 icecreamconfig/
 mteam_test/
 db/user.db
-tests/test_jellyfin.py
